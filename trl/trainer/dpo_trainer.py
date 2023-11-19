@@ -442,7 +442,7 @@ class DPOTrainer(Trainer):
         if reference_free:
             ref_logratios = 0
 
-        logits = pi_logratios - ref_logratios
+        logits = pi_logratios - F.relu(ref_logratios)
 
         if self.loss_type == "sigmoid":
             losses = -F.logsigmoid(self.beta * logits)
@@ -577,6 +577,7 @@ class DPOTrainer(Trainer):
         metrics[f"{prefix}logps/chosen"] = policy_chosen_logps.detach().cpu().mean()
         metrics[f"{prefix}logits/rejected"] = policy_rejected_logits.detach().cpu().mean()
         metrics[f"{prefix}logits/chosen"] = policy_chosen_logits.detach().cpu().mean()
+        metrics[f"{prefix}logps/clip_ratio"] = (1.0 * (reference_chosen_logps > reference_rejected_logps)).mean()
 
         return losses.mean(), metrics
 
